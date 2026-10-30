@@ -607,6 +607,7 @@
       width: var(--len, 220px);
       height: 4px;
       border-radius: 999px;
+      transform-origin: right center;
       background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255, 112, 170, 0.35) 18%, rgba(255, 168, 206, 0.92) 48%, #fff 100%);
       box-shadow: 0 0 10px 2px #fff, 0 0 22px 5px rgba(255, 126, 180, 0.92);
       animation: shoot var(--time, 1.8s) linear forwards;
@@ -645,10 +646,10 @@
     }
 
     @keyframes shoot {
-      0% { opacity: 0; transform: translate3d(12px, -8px, 0) rotate(var(--angle, 28deg)); }
+      0% { opacity: 0; transform: rotate(var(--angle, 150deg)) translate3d(0, 0, 0); }
       8% { opacity: 1; }
       78% { opacity: 1; }
-      100% { opacity: 0; transform: translate3d(-80vw, 64vh, 0) rotate(var(--angle, 28deg)); }
+      100% { opacity: 0; transform: rotate(var(--angle, 150deg)) translate3d(var(--dist, 72vw), 0, 0); }
     }
 
     @keyframes twinkle {
@@ -1732,17 +1733,29 @@
       spawnBalloon(0);
     }
 
-    /* 流星两三颗一组滑过，偶尔整片群星闪耀 */
+    /* 流星从右上往左下飞，拖尾顺着同一条轨迹留在身后 */
+    function meteorCourse() {
+      const angle = 136 + Math.random() * 28;
+      const rad = angle * Math.PI / 180;
+      return {
+        angle,
+        ux: Math.cos(rad),
+        uy: Math.sin(rad),
+        dist: Math.hypot(window.innerWidth, window.innerHeight) * (0.78 + Math.random() * 0.28)
+      };
+    }
+
     function spawnMeteor(options = {}) {
       const layer = $("meteors");
       const limit = options.limit || 16;
       if (!layer || layer.querySelectorAll(".meteor").length >= limit) return;
       const star = document.createElement("i");
       star.className = options.bright ? "meteor bright" : "meteor";
-      star.style.left = `${options.left}%`;
-      star.style.top = `${options.top}%`;
+      star.style.left = `${options.x}px`;
+      star.style.top = `${options.y}px`;
       star.style.setProperty("--len", `${options.len}px`);
       star.style.setProperty("--angle", `${options.angle}deg`);
+      star.style.setProperty("--dist", `${options.dist}px`);
       star.style.setProperty("--time", `${options.time}s`);
       star.style.setProperty("--delay", `${options.delay || 0}s`);
       star.addEventListener("animationend", () => star.remove());
@@ -1751,18 +1764,22 @@
 
     function spawnMeteorGroup() {
       const count = 2 + Math.floor(Math.random() * 2);
-      const baseLeft = 28 + Math.random() * 72;
-      const baseTop = Math.random() * 32;
-      const angle = 16 + Math.random() * 20;
+      const course = meteorCourse();
+      const sideX = -course.uy;
+      const sideY = course.ux;
+      const originX = window.innerWidth * (0.58 + Math.random() * 0.46);
+      const originY = window.innerHeight * (-0.12 + Math.random() * 0.34);
       const time = 1.55 + Math.random() * 0.45;
       for (let i = 0; i < count; i += 1) {
+        const spread = (i - (count - 1) / 2) * (36 + Math.random() * 18);
         spawnMeteor({
-          left: baseLeft + i * (7 + Math.random() * 8),
-          top: baseTop + i * (5 + Math.random() * 5),
-          angle: angle + (Math.random() * 8 - 4),
+          x: originX + sideX * spread - course.ux * i * 28,
+          y: originY + sideY * spread - course.uy * i * 28,
+          angle: course.angle,
+          dist: course.dist,
           time,
-          delay: i * 0.14,
-          len: 230 + Math.random() * 120,
+          delay: i * 0.12,
+          len: 250 + Math.random() * 120,
           bright: i === 0
         });
       }
@@ -1772,13 +1789,15 @@
       const layer = $("meteors");
       const meteors = 8 + Math.floor(Math.random() * 5);
       for (let i = 0; i < meteors; i += 1) {
+        const course = meteorCourse();
         spawnMeteor({
-          left: 8 + Math.random() * 108,
-          top: Math.random() * 58,
-          angle: 12 + Math.random() * 30,
+          x: window.innerWidth * (0.05 + Math.random() * 1.05),
+          y: window.innerHeight * (-0.2 + Math.random() * 0.5),
+          angle: course.angle,
+          dist: course.dist,
           time: 1.35 + Math.random() * 0.7,
-          delay: Math.random() * 0.7,
-          len: 210 + Math.random() * 150,
+          delay: Math.random() * 0.55,
+          len: 230 + Math.random() * 150,
           bright: Math.random() > 0.4,
           limit: 24
         });
