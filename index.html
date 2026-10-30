@@ -604,30 +604,57 @@
 
     .meteor {
       position: absolute;
-      width: var(--len, 150px);
-      height: 2px;
+      width: var(--len, 220px);
+      height: 4px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255, 246, 251, 0.2) 35%, #fff 100%);
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
-      animation: shoot var(--time, 2.1s) linear forwards;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255, 112, 170, 0.35) 18%, rgba(255, 168, 206, 0.92) 48%, #fff 100%);
+      box-shadow: 0 0 10px 2px #fff, 0 0 22px 5px rgba(255, 126, 180, 0.92);
+      animation: shoot var(--time, 1.8s) linear forwards;
+      animation-delay: var(--delay, 0s);
+      opacity: 0;
+    }
+
+    .meteor.bright {
+      height: 6px;
+      box-shadow: 0 0 14px 3px #fff, 0 0 30px 8px rgba(255, 110, 172, 0.98);
     }
 
     .meteor::after {
       content: "";
       position: absolute;
-      right: -2px;
-      top: -3px;
-      width: 7px;
-      height: 7px;
+      right: -4px;
+      top: 50%;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #fff;
-      box-shadow: 0 0 12px 4px rgba(255, 236, 246, 0.95);
+      transform: translateY(-50%);
+      box-shadow: 0 0 16px 6px #fff, 0 0 34px 12px rgba(255, 146, 196, 0.98);
+    }
+
+    .spark {
+      position: absolute;
+      width: var(--s, 16px);
+      height: var(--s, 16px);
+      background: #fff;
+      clip-path: polygon(50% 0, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0 50%, 37% 37%);
+      filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px #ff9ec8);
+      animation: twinkle 1.7s ease-out forwards;
+      animation-delay: var(--delay, 0s);
+      opacity: 0;
     }
 
     @keyframes shoot {
-      0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--angle, 28deg)); }
-      14% { opacity: 1; }
-      100% { opacity: 0; transform: translate3d(-72vw, 58vh, 0) rotate(var(--angle, 28deg)); }
+      0% { opacity: 0; transform: translate3d(12px, -8px, 0) rotate(var(--angle, 28deg)); }
+      8% { opacity: 1; }
+      78% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(-80vw, 64vh, 0) rotate(var(--angle, 28deg)); }
+    }
+
+    @keyframes twinkle {
+      0% { transform: scale(0.15) rotate(0deg); opacity: 0; }
+      28% { transform: scale(1.45) rotate(18deg); opacity: 1; }
+      100% { transform: scale(0.2) rotate(36deg); opacity: 0; }
     }
 
     .balloon {
@@ -1705,29 +1732,79 @@
       spawnBalloon(0);
     }
 
-    /* 流星从画面斜向滑过 */
-    function spawnMeteor() {
+    /* 流星两三颗一组滑过，偶尔整片群星闪耀 */
+    function spawnMeteor(options = {}) {
       const layer = $("meteors");
-      if (!layer || layer.children.length >= 4) return;
+      const limit = options.limit || 16;
+      if (!layer || layer.querySelectorAll(".meteor").length >= limit) return;
       const star = document.createElement("i");
-      star.className = "meteor";
-      star.style.left = `${18 + Math.random() * 95}%`;
-      star.style.top = `${Math.random() * 46}%`;
-      star.style.setProperty("--len", `${110 + Math.random() * 90}px`);
-      star.style.setProperty("--angle", `${18 + Math.random() * 22}deg`);
-      star.style.setProperty("--time", `${1.5 + Math.random() * 1.3}s`);
+      star.className = options.bright ? "meteor bright" : "meteor";
+      star.style.left = `${options.left}%`;
+      star.style.top = `${options.top}%`;
+      star.style.setProperty("--len", `${options.len}px`);
+      star.style.setProperty("--angle", `${options.angle}deg`);
+      star.style.setProperty("--time", `${options.time}s`);
+      star.style.setProperty("--delay", `${options.delay || 0}s`);
       star.addEventListener("animationend", () => star.remove());
       layer.appendChild(star);
+    }
+
+    function spawnMeteorGroup() {
+      const count = 2 + Math.floor(Math.random() * 2);
+      const baseLeft = 28 + Math.random() * 72;
+      const baseTop = Math.random() * 32;
+      const angle = 16 + Math.random() * 20;
+      const time = 1.55 + Math.random() * 0.45;
+      for (let i = 0; i < count; i += 1) {
+        spawnMeteor({
+          left: baseLeft + i * (7 + Math.random() * 8),
+          top: baseTop + i * (5 + Math.random() * 5),
+          angle: angle + (Math.random() * 8 - 4),
+          time,
+          delay: i * 0.14,
+          len: 230 + Math.random() * 120,
+          bright: i === 0
+        });
+      }
+    }
+
+    function spawnStarShower() {
+      const layer = $("meteors");
+      const meteors = 8 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < meteors; i += 1) {
+        spawnMeteor({
+          left: 8 + Math.random() * 108,
+          top: Math.random() * 58,
+          angle: 12 + Math.random() * 30,
+          time: 1.35 + Math.random() * 0.7,
+          delay: Math.random() * 0.7,
+          len: 210 + Math.random() * 150,
+          bright: Math.random() > 0.4,
+          limit: 24
+        });
+      }
+      const sparks = 16 + Math.floor(Math.random() * 10);
+      for (let i = 0; i < sparks; i += 1) {
+        const spark = document.createElement("i");
+        spark.className = "spark";
+        spark.style.left = `${Math.random() * 100}%`;
+        spark.style.top = `${Math.random() * 72}%`;
+        spark.style.setProperty("--s", `${14 + Math.random() * 18}px`);
+        spark.style.setProperty("--delay", `${Math.random() * 0.55}s`);
+        spark.addEventListener("animationend", () => spark.remove());
+        layer.appendChild(spark);
+      }
     }
 
     function initSky() {
       if (reduceMotion) return;
       for (let i = 0; i < 5; i += 1) spawnBalloon(0.15 + Math.random() * 0.7);
-      spawnMeteor();
+      spawnMeteorGroup();
       setInterval(() => {
         if (document.hidden) return;
-        spawnMeteor();
-      }, 1600);
+        if (Math.random() < 0.28) spawnStarShower();
+        else spawnMeteorGroup();
+      }, 2600);
     }
 
     function init() {
