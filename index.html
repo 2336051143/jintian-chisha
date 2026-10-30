@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>今天吃啥</title>
+  <meta name="description" content="今天吃啥：从一百多道中餐里抽一份午饭，并看看今天的天气、时间和运势。" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍱</text></svg>" />
+  <style>
+    /* 站酷快乐体，本地托管，圆圆的可爱字 */
+    @font-face {
+      font-family: "KuaiLe";
+      src: url("fonts/zcool-kuaile.woff2") format("woff2"),
+           url("fonts/ZCOOLKuaiLe-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --ink: #7a4560;
+      --ink-deep: #5c3048;
+      --soft: #b57b93;
+      --pink: #ff7eae;
+      --pink-deep: #ff4d8d;
+      --blush: #fff0f6;
+      --card: rgba(255, 255, 255, 0.8);
+      --line: rgba(255, 186, 210, 0.55);
+      --shadow: 0 14px 34px rgba(255, 143, 180, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink-deep);
+      font-family: "KuaiLe", "幼圆", "YouYuan", "Segoe UI Emoji", "Microsoft YaHei", sans-serif;
+      background-color: #fff4f8;
+      background-image:
+        radial-gradient(circle at 8% 12%, rgba(255, 186, 214, 0.7), transparent 26%),
+        radial-gradient(circle at 92% 8%, rgba(210, 190, 255, 0.62), transparent 24%),
+        radial-gradient(circle at 86% 86%, rgba(255, 214, 186, 0.7), transparent 28%),
+        radial-gradient(circle at 6% 88%, rgba(186, 240, 216, 0.55), transparent 24%),
+        radial-gradient(rgba(255, 171, 198, 0.35) 1.3px, transparent 1.4px);
+      background-size: auto, auto, auto, auto, 22px 22px;
+      background-attachment: fixed;
+    }
+
+    button, input { font-family: inherit; }
+
+    ::selection { background: #ffd3e6; color: #6a3048; }
+
+    .floats {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floats span {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      font-size: var(--s, 26px);
+      opacity: 0.85;
+      animation: floaty 7.5s ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+      filter: drop-shadow(0 8px 8px rgba(255, 150, 180, 0.25));
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0) rotate(-8deg); }
+      50% { transform: translateY(-18px) rotate(8deg); }
+    }
+
+    .stage {
+      position: relative;
+      z-index: 1;
+      width: min(1080px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero { text-align: center; padding: 8px 12px 4px; }
+
+    .eyebrow {
+      display: inline-block;
+      margin: 0;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #e25b8c;
+      letter-spacing: 0.14em;
+      box-shadow: 0 6px 16px rgba(255, 160, 190, 0.16);
+    }
+
+    h1 {
+      margin: 10px 0 6px;
+      font-size: clamp(52px, 8vw, 86px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: 0.12em;
+      color: #ff5f97;
+      text-shadow: 0 2px 0 #fff, 0 5px 0 #ffd6e7, 0 12px 22px rgba(255, 110, 160, 0.28);
+    }
+
+    h1 i {
+      font-style: normal;
+      font-size: 0.46em;
+      letter-spacing: 0;
+      margin: 0 6px;
+      vertical-align: 12px;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--soft);
+      font-size: 18px;
+      letter-spacing: 0.04em;
+    }
+
+    .info {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: 0.9fr 1.05fr 1.15fr;
+      gap: 14px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 26px;
+      border: 2px solid rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow), inset 0 0 0 1px var(--line);
+      padding: 16px 16px 14px;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 90px;
+      height: 18px;
+      right: 18px;
+      top: -6px;
+      transform: rotate(8deg);
+      border-radius: 4px;
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,.45) 0 8px, transparent 8px 12px),
+                  linear-gradient(90deg, #ffd0e4, #e6d8ff);
+      opacity: 0.95;
+    }
+
+    .kicker {
+      display: inline-flex;
+      margin: 0 0 8px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--blush);
+      color: #e25b8c;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+    }
+
+    .clock {
+      margin: 2px 0 4px;
+      font-size: clamp(32px, 4vw, 44px);
+      letter-spacing: 0.06em;
+      color: #ff5f97;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .date-line {
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 18px;
+    }
+
+    .date-line span:last-child {
+      background: #fff4d8;
+      color: #d4893a;
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+
+    .greet, .w-whisper, .fortune-line, .yi, .w-meta, .dish-tip, .times {
+      margin: 8px 0 0;
+      color: var(--soft);
+      line-height: 1.55;
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .w-emoji { font-size: 48px; line-height: 1; }
+
+    .temp {
+      margin: 0;
+      font-size: 40px;
+      line-height: 1;
+      color: #ff5f97;
+    }
+
+    .w-desc { margin: 4px 0 0; font-size: 18px; }
+
+    .city-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: #ffb7d0 transparent;
+    }
+
+    .city-row::-webkit-scrollbar { height: 7px; }
+    .city-row::-webkit-scrollbar-thumb { background: #ffb3d0; border-radius: 99px; }
+    .city-row::-webkit-scrollbar-track { background: transparent; }
+
+    .city-row button {
+      flex: 0 0 auto;
+      border: 0;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 4px 10px;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px #ffd3e4;
+    }
+
+    .city-row button.active {
+      background: linear-gradient(180deg, #ffb0d0, #ff6fa3);
+      color: white;
+      box-shadow: none;
+    }
+
+    .fortune-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .level {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(180deg, #ffb35c, #ff7a9a);
+      letter-spacing: 0.12em;
+    }
+
+    .level.lv-5 { background: linear-gradient(180deg, #ffd56a, #ff6f9f); }
+    .level.lv-4 { background: linear-gradient(180deg, #d7c4ff, #ff8fb8); }
+    .level.lv-3 { background: linear-gradient(180deg, #9ee0c2, #7ec8f0); }
+    .level.lv-2 { background: linear-gradient(180deg, #ffc7a3, #f0a0b8); }
+
+    .stars { color: #ffb03a; letter-spacing: 0.08em; font-size: 18px; }
+
+    .fortune-card h3 {
+      margin: 8px 0 0;
+      font-size: 26px;
+      font-weight: 400;
+      color: #ff5f97;
+    }
+
+    .lucky {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .lucky span {
+      background: #fff;
+      border-radius: 999px;
+      padding: 4px 10px;
+      box-shadow: inset 0 0 0 1px #ffe0ec;
+    }
+
+    #luckyDot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin: 0 4px 0 2px;
+      vertical-align: -1px;
+      box-shadow: 0 0 0 2px white, 0 0 0 3px rgba(255, 160, 190, 0.4);
+    }
+
+    .bento {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 36px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,250,252,.9)) padding-box,
+        linear-gradient(120deg, #ffb7d4, #e4d4ff, #ffd7b8, #ffb7d4) border-box;
+      border: 3px solid transparent;
+      box-shadow: 0 18px 40px rgba(255, 150, 180, 0.18);
+    }
+
+    .bento-inner {
+      border: 2px dashed rgba(255, 150, 186, 0.55);
+      border-radius: 28px;
+      padding: 16px 16px 18px;
+      background:
+        radial-gradient(circle at 0 0, rgba(255, 228, 240, 0.7), transparent 32%),
+        radial-gradient(circle at 100% 100%, rgba(232, 224, 255, 0.65), transparent 28%);
+    }
+
+    .bento-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .draw-layout {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .machine { width: 230px; margin: 0 auto; }
+
+    .dome {
+      position: relative;
+      height: 168px;
+      border-radius: 120px 120px 26px 26px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 30% 24%, rgba(255,255,255,.96), rgba(255,255,255,.2) 28%, rgba(190, 214, 255, .38) 72%);
+      border: 4px solid #fff;
+      box-shadow: inset 0 -18px 24px rgba(255, 170, 200, 0.35), 0 10px 0 #ffc6dc;
+    }
+
+    .shine {
+      position: absolute;
+      width: 46px;
+      height: 70px;
+      left: 28px;
+      top: 18px;
+      border-radius: 40px;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,0));
+      transform: rotate(18deg);
+    }
+
+    .ball {
+      position: absolute;
+      left: var(--bx);
+      top: var(--by);
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff, #ffe4f0 70%);
+      box-shadow: inset 0 -6px 0 rgba(255, 170, 196, 0.35), 0 6px 0 rgba(255, 150, 180, 0.18);
+    }
+
+    .machine-body {
+      height: 70px;
+      margin-top: -2px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 0 0 22px 22px;
+      color: white;
+      letter-spacing: 0.12em;
+      background: linear-gradient(180deg, #ff97c0, #ff5c96);
+      box-shadow: 0 8px 0 #e94b82;
+    }
+
+    .knob {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, #fff, #ffd1e4 40%, #ff8fba 72%);
+      box-shadow: 0 4px 0 #e2558c, inset 0 0 0 4px rgba(255,255,255,.45);
+    }
+
+    .machine.spin { animation: wobble 0.32s linear infinite; }
+    .machine.spin .ball { animation: tumble 0.42s linear infinite; }
+    .machine.spin .knob { animation: twist 0.28s linear infinite; }
+
+    @keyframes wobble {
+      25% { transform: rotate(-1.6deg); }
+      75% { transform: rotate(1.6deg); }
+    }
+
+    @keyframes tumble {
+      50% { transform: translateY(10px) rotate(16deg); }
+    }
+
+    @keyframes twist {
+      50% { transform: rotate(40deg); }
+    }
+
+    .tray {
+      margin-top: 12px;
+      min-height: 72px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.72);
+      border: 2px dashed #ffc2d8;
+    }
+
+    .capsule {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff, #ffe7f1);
+      box-shadow: 0 8px 0 rgba(255, 170, 196, 0.28);
+    }
+
+    .result { position: relative; padding: 8px 108px 8px 8px; }
+
+    .stamp {
+      position: absolute;
+      right: 8px;
+      top: 12px;
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 93, 143, 0.85);
+      color: #ff5d8f;
+      letter-spacing: 0.12em;
+      transform: rotate(14deg);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .stamp.show { animation: stampIn 0.38s cubic-bezier(.2, 1.4, .4, 1) both; }
+
+    @keyframes stampIn {
+      0% { opacity: 0; transform: rotate(14deg) scale(1.4); }
+      100% { opacity: 0.9; transform: rotate(14deg) scale(1); }
+    }
+
+    .dish-tag {
+      display: inline-flex;
+      margin: 0;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #ffe4ef;
+      color: #e25b8c;
+    }
+
+    .dish-tag[data-tag="川味"] { background: #ffe0e8; color: #d43262; }
+    .dish-tag[data-tag="粤式"] { background: #e7f7ef; color: #2f9d74; }
+    .dish-tag[data-tag="湘味"] { background: #ffe8d8; color: #e06a2c; }
+    .dish-tag[data-tag="江浙"] { background: #e5f4ff; color: #3a86c2; }
+    .dish-tag[data-tag="东北"] { background: #fff1d6; color: #d4892a; }
+    .dish-tag[data-tag="西北"] { background: #f8ead8; color: #b86b32; }
+    .dish-tag[data-tag="云贵"] { background: #e9f8e4; color: #4c9a48; }
+    .dish-tag[data-tag="闽南"] { background: #e4f7fb; color: #1f8eab; }
+    .dish-tag[data-tag="面点"] { background: #fff4d8; color: #d49a22; }
+    .dish-tag[data-tag="汤粥"] { background: #e8fbf6; color: #1aa58a; }
+    .dish-tag[data-tag="海鲜"] { background: #e5f2ff; color: #3d7ed0; }
+    .dish-tag[data-tag="凉菜"] { background: #eafbe8; color: #4ea24a; }
+    .dish-tag[data-tag="盖饭"] { background: #fff0e0; color: #e07a32; }
+    .dish-tag[data-tag="点心"] { background: #fde8f4; color: #d45298; }
+
+    h2#dishName {
+      margin: 8px 0 0;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      color: #ff4f90;
+    }
+
+    .result.pop h2#dishName { animation: pop 0.45s cubic-bezier(.2, 1.4, .4, 1); }
+
+    @keyframes pop {
+      0% { transform: scale(0.86); }
+      100% { transform: scale(1); }
+    }
+
+    .draw-btn {
+      appearance: none;
+      margin-top: 16px;
+      width: min(100%, 420px);
+      border: 0;
+      cursor: pointer;
+      color: white;
+      font-size: 24px;
+      letter-spacing: 0.14em;
+      padding: 14px 28px 16px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffb7d6 0%, #ff78ad 46%, #ff4d8d 100%);
+      box-shadow: 0 7px 0 #e43778, 0 16px 24px rgba(255, 77, 141, 0.28);
+      text-shadow: 0 2px 0 rgba(190, 40, 90, 0.25);
+    }
+
+    .draw-btn:hover { transform: translateY(-2px); }
+    .draw-btn:active { transform: translateY(6px); box-shadow: 0 1px 0 #e43778; }
+    .draw-btn:disabled { cursor: wait; filter: saturate(0.85); transform: none; }
+    .draw-btn:focus-visible { outline: 3px solid #ffd0e6; outline-offset: 3px; }
+
+    .jar {
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.74);
+      border-radius: 24px;
+      padding: 12px 14px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .jar summary {
+      cursor: pointer;
+      list-style: none;
+      color: #e25b8c;
+      letter-spacing: 0.06em;
+      font-size: 18px;
+    }
+
+    .jar summary::-webkit-details-marker { display: none; }
+    .jar summary em { font-style: normal; color: var(--soft); font-size: 15px; margin-left: 8px; }
+
+    .jar-tools { margin: 12px 0; }
+
+    #jarSearch {
+      width: 100%;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: #fff;
+      color: var(--ink-deep);
+      box-shadow: inset 0 0 0 2px #ffd5e6;
+      outline: none;
+    }
+
+    #jarSearch:focus { box-shadow: inset 0 0 0 2px #ff8fb8; }
+
+    .jar-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .pill {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #fff7fb;
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px #ffd8e8;
+    }
+
+    .pill:hover { background: #ffe4f0; }
+
+    .foot {
+      text-align: center;
+      color: #c08aa0;
+      margin: 18px 0 0;
+      letter-spacing: 0.08em;
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    @media (max-width: 860px) {
+      .info, .draw-layout { grid-template-columns: 1fr; }
+      .result { padding-right: 8px; }
+      .stamp { position: static; margin: 8px 0 0; }
+      h1 { letter-spacing: 0.06em; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="floats" aria-hidden="true">
+    <span style="--x:6%;--y:10%;--d:0s;--s:28px">🍓</span>
+    <span style="--x:90%;--y:14%;--d:1s;--s:24px">🎀</span>
+    <span style="--x:84%;--y:42%;--d:0.4s;--s:22px">✨</span>
+    <span style="--x:8%;--y:46%;--d:1.4s;--s:26px">🍑</span>
+    <span style="--x:92%;--y:72%;--d:0.8s;--s:24px">💖</span>
+    <span style="--x:12%;--y:78%;--d:1.8s;--s:22px">☁️</span>
+    <span style="--x:48%;--y:6%;--d:0.2s;--s:18px">⭐</span>
+    <span style="--x:70%;--y:88%;--d:1.2s;--s:24px">🍜</span>
+  </div>
+
+  <main class="stage">
+    <header class="hero">
+      <p class="eyebrow">软软的午饭决定局</p>
+      <h1><i>✿</i>今天吃啥<i>✿</i></h1>
+      <p class="sub">菜谱罐里装着 <b id="jarCountTop">0</b> 道中餐，按一下就抽给你</p>
+    </header>
+
+    <section class="info" aria-label="今天的信息">
+      <article class="card">
+        <p class="kicker">时间日期</p>
+        <p class="clock" id="clock">--:--:--</p>
+        <p class="date-line"><span id="dateText">正在翻日历</span><span id="weekText">星期</span></p>
+        <p class="greet" id="greet">今天也要好好吃饭</p>
+      </article>
+
+      <article class="card">
+        <p class="kicker">今日天气</p>
+        <div class="weather-main">
+          <span class="w-emoji" id="wEmoji">🌈</span>
+          <div>
+            <p class="temp" id="temp">--°</p>
+            <p class="w-desc" id="wDesc">正在踮脚看窗外</p>
+          </div>
+        </div>
+        <p class="w-meta" id="wMeta">温度和云朵在路上</p>
+        <p class="w-whisper" id="wWhisper"></p>
+        <div class="city-row" id="cityRow" aria-label="切换城市"></div>
+      </article>
+
+      <article class="card fortune-card">
+        <p class="kicker">今日运势</p>
+        <div class="fortune-head">
+          <span class="level" id="level">小吉</span>
+          <span class="stars" id="stars" aria-hidden="true">★★★☆☆</span>
+        </div>
+        <h3 id="fortuneTitle">今天的签还在展开</h3>
+        <p class="fortune-line" id="fortuneLine"></p>
+        <div class="lucky">
+          <span>幸运色 <i id="luckyDot"></i><b id="luckyColor">—</b></span>
+          <span>幸运数字 <b id="luckyNum">—</b></span>
+          <span>幸运食材 <b id="luckyFood">—</b></span>
+        </div>
+        <p class="yi" id="yiLine"></p>
+      </article>
+    </section>
+
+    <section class="bento" aria-label="午饭抽奖">
+      <div class="bento-inner">
+        <div class="bento-top">
+          <p class="kicker">午饭抽奖</p>
+          <p class="times" id="times">今天还没抽过</p>
+        </div>
+        <div class="draw-layout">
+          <div class="machine" id="machine" aria-hidden="true">
+            <div class="dome">
+              <span class="shine"></span>
+              <span class="ball" style="--bx:14%;--by:48%">🍜</span>
+              <span class="ball" style="--bx:38%;--by:18%">🥟</span>
+              <span class="ball" style="--bx:62%;--by:46%">🍱</span>
+              <span class="ball" style="--bx:28%;--by:64%">🍲</span>
+              <span class="ball" style="--bx:54%;--by:30%">🥗</span>
+            </div>
+            <div class="machine-body">
+              <span>出餐口</span>
+              <span class="knob"></span>
+            </div>
+            <div class="tray"><span class="capsule" id="plateEmoji">🍱</span></div>
+          </div>
+
+          <div class="result" id="resultBox">
+            <div class="stamp" id="stamp">就吃这个</div>
+            <p class="dish-tag" id="dishTag" data-tag="">待抽取</p>
+            <h2 id="dishName">午饭还在罐里睡觉</h2>
+            <p class="dish-tip" id="dishTip">按一下粉色按钮，让今天的菜自己跳出来</p>
+            <button class="draw-btn" id="drawBtn" type="button">抽取午饭</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <details class="jar">
+      <summary>偷看菜谱罐 <em id="jarShown"></em></summary>
+      <div class="jar-tools">
+        <input id="jarSearch" type="search" placeholder="搜一道菜，或搜川味、面点、汤粥…" aria-label="搜索菜谱" />
+      </div>
+      <div class="jar-list" id="jarList"></div>
+    </details>
+
+    <p class="foot">今天吃啥 · 把午饭交给一点点运气</p>
+    <p class="sr" id="live" aria-live="polite"></p>
+  </main>
+
+  <script>
+    /* 菜谱：名称|分类|表情。加载时会去掉重名。 */
+    const RAW = `
+番茄炒蛋|家常|🍅
+青椒土豆丝|家常|🥔
+红烧肉|家常|🍖
+糖醋排骨|家常|🍖
+青椒肉丝|家常|🫑
+木须肉|家常|🥚
+京酱肉丝|家常|🥩
+蚂蚁上树|家常|🍝
+红烧茄子|家常|🍆
+干煸四季豆|家常|🫛
+蒜蓉西兰花|家常|🥦
+蚝油生菜|家常|🥬
+醋溜白菜|家常|🥬
+手撕包菜|家常|🥬
+韭菜炒蛋|家常|🥚
+虾仁滑蛋|海鲜|🍤
+苦瓜炒蛋|家常|🥒
+西葫芦炒蛋|家常|🥒
+洋葱炒牛肉|家常|🧅
+蒜苔炒肉|家常|🥩
+芹菜香干|家常|🥬
+豆芽肉丝|家常|🌱
+香菇青菜|家常|🍄
+香菇滑鸡|家常|🍄
+可乐鸡翅|家常|🍗
+土豆烧牛肉|家常|🥔
+萝卜炖牛腩|家常|🥕
+西红柿牛腩|家常|🍅
+糖醋里脊|家常|🥩
+酱爆鸡丁|家常|🍗
+干锅花菜|家常|🥦
+家常豆腐|家常|🧈
+肉末豆腐|家常|🧈
+红烧日本豆腐|家常|🧈
+地三鲜|东北|🍆
+锅包肉|东北|🥩
+溜肉段|东北|🥩
+小鸡炖蘑菇|东北|🍄
+猪肉炖粉条|东北|🍜
+酸菜炖粉条|东北|🥬
+排骨炖豆角|东北|🍖
+尖椒干豆腐|东北|🌶️
+东北乱炖|东北|🍲
+酱骨架|东北|🍖
+得莫利炖鱼|东北|🐟
+酸菜白肉|东北|🥬
+鱼香肉丝|川味|🥩
+宫保鸡丁|川味|🥜
+麻婆豆腐|川味|🌶️
+回锅肉|川味|🥩
+水煮牛肉|川味|🥩
+水煮鱼|川味|🐟
+酸菜鱼|川味|🐟
+毛血旺|川味|🌶️
+辣子鸡|川味|🌶️
+口水鸡|川味|🍗
+夫妻肺片|川味|🥩
+蒜泥白肉|川味|🥩
+棒棒鸡|川味|🍗
+怪味鸡|川味|🍗
+泡椒牛蛙|川味|🐸
+干锅牛蛙|川味|🐸
+香辣蟹|川味|🦀
+沸腾鱼片|川味|🐟
+鱼香茄子|川味|🍆
+宫保虾球|川味|🍤
+鱼香虾仁|川味|🍤
+甜皮鸭|川味|🦆
+担担面|川味|🍜
+红油抄手|川味|🥟
+钟水饺|川味|🥟
+龙抄手|川味|🥟
+宜宾燃面|川味|🍜
+四川凉面|川味|🍜
+甜水面|川味|🍜
+盐煎肉|川味|🥩
+鱼香豆腐|川味|🧈
+宫保豆腐|川味|🥜
+金汤肥牛|川味|🥩
+番茄肥牛|家常|🍅
+辣椒炒肉|湘味|🌶️
+农家小炒肉|湘味|🌶️
+小炒黄牛肉|湘味|🥩
+剁椒鱼头|湘味|🐟
+剁椒蒸蛋|湘味|🥚
+口味虾|湘味|🦐
+腊味合蒸|湘味|🍚
+啤酒鸭|湘味|🦆
+湘味小炒肉|湘味|🥩
+干锅肥肠|湘味|🍲
+酸辣土豆丝|家常|🥔
+白切鸡|粤式|🍗
+盐焗鸡|粤式|🍗
+豉油鸡|粤式|🍗
+葱油鸡|粤式|🍗
+叉烧|粤式|🍖
+蜜汁叉烧|粤式|🍯
+烧鸭|粤式|🦆
+烧鹅|粤式|🦢
+虾饺|点心|🥟
+烧卖|点心|🥟
+叉烧包|点心|🥟
+流沙包|点心|🥟
+糯米鸡|点心|🍙
+肠粉|粤式|🍜
+干炒牛河|粤式|🍜
+云吞面|粤式|🍜
+星洲炒米|粤式|🍜
+清蒸石斑|海鲜|🐟
+白灼虾|海鲜|🦐
+油焖大虾|海鲜|🦐
+蒜蓉粉丝虾|海鲜|🦐
+椒盐虾|海鲜|🦐
+油爆虾|海鲜|🦐
+香辣虾|海鲜|🦐
+蒜蓉蒸扇贝|海鲜|🐚
+清蒸鲈鱼|海鲜|🐟
+糖醋鲤鱼|海鲜|🐟
+松鼠桂鱼|江浙|🐟
+红烧带鱼|海鲜|🐟
+红烧鲫鱼|海鲜|🐟
+豆腐鲫鱼|家常|🐟
+番茄炖鱼|家常|🍅
+豆瓣鲫鱼|川味|🐟
+咕噜肉|粤式|🥩
+菠萝咕咾肉|粤式|🍍
+蚝油牛肉|粤式|🥩
+萝卜牛腩|粤式|🥕
+柱候牛腩|粤式|🥩
+老火靓汤|汤粥|🍲
+冬瓜盅|粤式|🍈
+蒸凤爪|点心|🍗
+豉汁蒸排骨|粤式|🍖
+白灼菜心|粤式|🥬
+窝蛋牛肉饭|盖饭|🍚
+滑蛋虾仁饭|盖饭|🍚
+叉烧饭|盖饭|🍚
+烧鸭饭|盖饭|🍚
+白切鸡饭|盖饭|🍚
+隆江猪脚饭|盖饭|🍚
+腊味煲仔饭|盖饭|🍚
+荷叶饭|盖饭|🍚
+及第粥|汤粥|🥣
+鱼片粥|汤粥|🥣
+艇仔粥|汤粥|🥣
+小笼包|点心|🥟
+生煎包|点心|🥟
+蟹黄汤包|点心|🥟
+鲜肉包|点心|🥟
+狗不理包子|点心|🥟
+葱油拌面|江浙|🍜
+阳春面|江浙|🍜
+片儿川|江浙|🍜
+排骨年糕|江浙|🍖
+西湖醋鱼|江浙|🐟
+龙井虾仁|江浙|🍵
+叫花鸡|江浙|🍗
+宋嫂鱼羹|江浙|🥣
+油焖春笋|江浙|🎋
+腌笃鲜|江浙|🍲
+本帮红烧肉|江浙|🍖
+红烧划水|江浙|🐟
+蟹粉豆腐|江浙|🦀
+葱油饼|面点|🥞
+鸡蛋灌饼|面点|🥞
+锅贴|点心|🥟
+煎饺|点心|🥟
+猪肉白菜水饺|点心|🥟
+三鲜水饺|点心|🥟
+玉米猪肉饺子|点心|🥟
+芹菜猪肉饺子|点心|🥟
+韭菜盒子|面点|🥟
+鲜肉馄饨|点心|🥟
+菜肉馄饨|点心|🥟
+牛肉馅饼|面点|🥙
+兰州牛肉面|面点|🍜
+炸酱面|面点|🍜
+重庆小面|川味|🍜
+热干面|面点|🍜
+刀削面|面点|🍜
+油泼面|西北|🍜
+裤带面|西北|🍜
+烩面|面点|🍜
+西红柿鸡蛋面|面点|🍜
+排骨面|面点|🍜
+雪菜肉丝面|面点|🍜
+海鲜炒面|面点|🍜
+襄阳牛肉面|面点|🍜
+臊子面|西北|🍜
+淮南牛肉汤|汤粥|🥣
+扬州炒饭|盖饭|🍚
+黄金蛋炒饭|盖饭|🍚
+腊肠炒饭|盖饭|🍚
+卤肉饭|盖饭|🍚
+鸡腿饭|盖饭|🍗
+照烧鸡排饭|盖饭|🍚
+咖喱鸡饭|盖饭|🍛
+鱼香肉丝盖饭|盖饭|🍚
+宫保鸡丁盖饭|盖饭|🍚
+肥牛饭|盖饭|🍚
+鳗鱼饭|盖饭|🍚
+黑椒牛柳饭|盖饭|🍚
+梅菜扣肉饭|盖饭|🍚
+酸辣粉|面点|🍜
+牛肉粉|面点|🍜
+螺蛳粉|面点|🍜
+桂林米粉|面点|🍜
+过桥米线|云贵|🍜
+小锅米线|云贵|🍜
+土豆粉|面点|🍜
+麻辣烫|川味|🍲
+冒菜|川味|🍲
+串串香|川味|🍢
+麻辣拌|川味|🌶️
+沙县拌面|面点|🍜
+沙县扁肉|点心|🥟
+黄焖鸡米饭|盖饭|🍚
+肉夹馍|西北|🥙
+羊肉泡馍|西北|🍲
+凉皮|西北|🍜
+牛肉凉皮|西北|🍜
+酿皮|西北|🍜
+拉条子|西北|🍜
+大盘鸡|西北|🍗
+手抓饭|西北|🍚
+椒麻鸡|西北|🍗
+黄焖羊肉|西北|🍖
+羊杂汤|西北|🍲
+浆水面|西北|🍜
+孜然羊肉|西北|🥩
+羊肉汤|西北|🍲
+手抓羊肉|西北|🍖
+过油肉|西北|🥩
+驴肉火烧|面点|🥙
+煎饼果子|面点|🥞
+胡辣汤|汤粥|🥣
+豆腐脑|汤粥|🥣
+小米南瓜粥|汤粥|🎃
+皮蛋瘦肉粥|汤粥|🥣
+海鲜粥|汤粥|🥣
+银耳莲子羹|汤粥|🥣
+番茄蛋花汤|汤粥|🍅
+紫菜蛋花汤|汤粥|🥣
+冬瓜排骨汤|汤粥|🍈
+玉米排骨汤|汤粥|🌽
+莲藕排骨汤|汤粥|🍲
+菌菇鸡汤|汤粥|🍄
+酸辣汤|汤粥|🥣
+西湖牛肉羹|汤粥|🥣
+丝瓜蛋汤|汤粥|🥒
+菠菜蛋汤|汤粥|🥬
+萝卜排骨汤|汤粥|🥕
+鸡蛋羹|家常|🥚
+肉末蒸蛋|家常|🥚
+虾仁蒸蛋|海鲜|🍤
+汽锅鸡|云贵|🍗
+酸汤鱼|云贵|🐟
+酸汤肥牛|云贵|🥩
+野生菌汤|云贵|🍄
+饵块炒肉|云贵|🍚
+荔枝肉|闽南|🥩
+沙茶面|闽南|🍜
+海蛎煎|闽南|🦪
+姜母鸭|闽南|🦆
+红糟鸡|闽南|🍗
+面线糊|闽南|🍜
+佛跳墙|闽南|🍲
+扁肉燕|闽南|🥟
+醉排骨|闽南|🍖
+猪脚面线|闽南|🍜
+拍黄瓜|凉菜|🥒
+皮蛋豆腐|凉菜|🥚
+凉拌木耳|凉菜|🍄
+凉拌海带丝|凉菜|🥗
+老虎菜|凉菜|🌶️
+糖拌西红柿|凉菜|🍅
+凉拌金针菇|凉菜|🍄
+蒜泥茄子|凉菜|🍆
+手撕鸡|凉菜|🍗
+酱牛肉|凉菜|🥩
+盐水鸭|凉菜|🦆
+卤鸡腿|凉菜|🍗
+凉拌藕片|凉菜|🥗
+麻酱凉面|凉菜|🍜
+椰子鸡|粤式|🥥
+猪肚鸡|粤式|🍲
+三杯鸡|家常|🍗
+黄焖鸡|家常|🍗
+板栗烧鸡|家常|🍗
+咖喱鸡|家常|🍛
+咖喱牛腩|家常|🍛
+黑椒牛柳|家常|🥩
+杭椒牛柳|家常|🌶️
+西兰花炒虾仁|海鲜|🥦
+荷兰豆炒腊肠|家常|🌭
+蒜蓉菜心|家常|🥬
+上汤娃娃菜|家常|🥬
+清炒豆苗|家常|🌱
+木耳炒山药|家常|🍄
+梅菜扣肉|家常|🍖
+粉蒸肉|家常|🍚
+粉蒸排骨|家常|🍖
+东坡肉|江浙|🍖
+红烧狮子头|家常|🥩
+四喜丸子|家常|🥩
+糖醋小排|家常|🍖
+蒜香排骨|家常|🍖
+豆豉蒸排骨|家常|🍖
+芋头烧排骨|家常|🍖
+南乳排骨|粤式|🍖
+栗子红烧肉|家常|🌰
+红烧牛腩|家常|🥩
+干锅虾|海鲜|🦐
+干锅千页豆腐|家常|🧈
+酿苦瓜|粤式|🥒
+客家酿豆腐|粤式|🧈
+清炒虾仁|海鲜|🍤
+茄汁大虾|海鲜|🦐
+糖醋鸡块|家常|🍗
+酸菜排骨|家常|🍖
+麻酱拌面|面点|🍜
+三鲜蒸饺|点心|🥟
+虾仁烧卖|点心|🥟
+罗宋汤|汤粥|🥣
+玉米排骨粥|汤粥|🌽
+酸汤金针菇|家常|🍄
+`.trim();
+
+    const TAG_TIPS = {
+      家常: ["家的味道，吃一口就安心", "简单的一盘，也能很认真", "下饭这件事，它很在行"],
+      川味: ["麻辣轻轻响，胃口一下就来了", "红油亮晶晶，心情也亮晶晶", "今天想要一点泼辣的快乐"],
+      粤式: ["清清爽爽，也有滋有味", "鲜味轻轻的，刚刚好", "精致的一餐，从这一口开始"],
+      湘味: ["辣椒是今日的小太阳", "香辣直率，吃饭也痛快", "下饭高手已经就位"],
+      江浙: ["甜甜嫩嫩，是江南的午饭", "鲜得轻轻巧巧", "细腻的一餐，可以慢慢吃"],
+      东北: ["分量足足的，吃饱最重要", "热乎、实在、很想家", "大碗吃饭的快乐"],
+      西北: ["面香和辣香一起到来", "豪爽的一餐，精神也会起来", "吃完会想再来一碗"],
+      云贵: ["酸香开胃，带着一点远方", "鲜鲜辣辣，像一场小旅行", "今天的午饭有点特别"],
+      闽南: ["海鲜与甜香碰在一起", "沿海的鲜，装进午饭", "温柔里带一点鲜亮"],
+      面点: ["热气先到，幸福后到", "吸溜一口，世界就软了", "面条会好好抱抱饥饿"],
+      汤粥: ["先喝一口，把身子暖过来", "汤汤水水，最懂疲惫", "慢慢喝，午饭也可以很轻"],
+      海鲜: ["鲜味今天当主角", "海里的甜，配一碗白饭", "清清亮亮的一餐"],
+      凉菜: ["脆脆爽爽，先开开胃", "清凉一小碟，心情也透气", "解腻的时候就找它"],
+      盖饭: ["一碗盖住所有犹豫", "米饭和菜抱在一起", "打开盖，午饭就齐了"],
+      点心: ["小小一笼，快乐满满", "薄皮里包着今天的运气", "先吃一只，再决定要不要再来"]
+    };
+
+    const FORTUNES = [
+      { level: "大吉", stars: 5, title: "草莓奶油大吉", line: "今天的运气亮晶晶的，吃什么都会觉得幸福。" },
+      { level: "大吉", stars: 5, title: "软乎乎的幸运", line: "想吃的那一口，会刚好出现在你面前。" },
+      { level: "中吉", stars: 4, title: "蜜桃味中吉", line: "午饭会很顺利，连等待都像在散步。" },
+      { level: "中吉", stars: 4, title: "小蝴蝶中吉", line: "今天适合把决定交给按钮，结果会很温柔。" },
+      { level: "小吉", stars: 4, title: "布丁小吉", line: "平平常常的一天，也会被一顿饭点亮。" },
+      { level: "小吉", stars: 3, title: "云朵小吉", line: "胃口轻轻的，清淡或热汤都会刚刚好。" },
+      { level: "中吉", stars: 4, title: "花朵便当日", line: "和别人一起吃，会比独自吃更香。" },
+      { level: "平平", stars: 3, title: "软绵绵的平日", line: "没有大风大浪，好好吃饭就是好运。" },
+      { level: "小吉", stars: 3, title: "柠檬汽水日", line: "如果抽到辣的，就配一杯甜甜的饮料。" },
+      { level: "中吉", stars: 4, title: "暖乎乎中吉", line: "热食会带来好运，记得趁热吃。" },
+      { level: "大吉", stars: 5, title: "闪光饭票", line: "今天你值得多吃两口自己喜欢的。" },
+      { level: "小留意", stars: 2, title: "慢一点也好", line: "别饿太久，先吃一点，世界会变柔软。" },
+      { level: "中吉", stars: 4, title: "粉彩幸运", line: "新口味今天不会出错，可以大胆抽。" },
+      { level: "小吉", stars: 3, title: "午后薄彩", line: "吃完记得休息一会儿，消化也是幸运的一部分。" },
+      { level: "大吉", stars: 5, title: "满月便当", line: "饱饱的一餐，会把下午的精神也喂醒。" },
+      { level: "中吉", stars: 4, title: "丝带中吉", line: "抽到的那道菜，会比你想象中更合胃口。" }
+    ];
+
+    const YI = ["慢慢吃饭", "和人分享", "喝一杯温水", "午睡十分钟", "尝试新口味", "把手机先放下", "配一点蔬菜", "细嚼慢咽", "饭后散步", "给自己加个小菜"];
+    const JI = ["空腹加班", "吃得太急", "边走边吃", "只喝饮料当午饭", "饿到发脾气", "忽略一碗热汤", "剩太多", "吃完立刻躺很久"];
+    const COLORS = [
+      ["草莓粉", "#ff8fb7"],
+      ["奶油黄", "#ffd56a"],
+      ["薄荷绿", "#7ddeaf"],
+      ["香芋紫", "#c7b0f5"],
+      ["蜜桃橙", "#ffb085"],
+      ["天空蓝", "#8ecbff"],
+      ["玫瑰金", "#e8a0b0"],
+      ["乳白", "#fff4e8"]
+    ];
+    const FOODS = ["番茄", "鸡蛋", "牛肉", "虾仁", "豆腐", "青菜", "蘑菇", "排骨", "鸡肉", "土豆", "茄子", "鱼", "玉米", "米饭", "面条"];
+    const CITIES = [
+      ["北京", 39.9042, 116.4074],
+      ["上海", 31.2304, 121.4737],
+      ["广州", 23.1291, 113.2644],
+      ["深圳", 22.5431, 114.0579],
+      ["东莞", 23.0205, 113.7518],
+      ["成都", 30.5728, 104.0668],
+      ["杭州", 30.2741, 120.1551],
+      ["武汉", 30.5928, 114.3055],
+      ["西安", 34.3416, 108.9398],
+      ["南京", 32.0603, 118.7969],
+      ["重庆", 29.563, 106.5516],
+      ["长沙", 28.2282, 112.9388],
+      ["苏州", 31.2989, 120.5853],
+      ["天津", 39.3434, 117.3616],
+      ["郑州", 34.7466, 113.6254],
+      ["青岛", 36.0671, 120.3826],
+      ["厦门", 24.4798, 118.0894],
+      ["昆明", 25.0389, 102.7183],
+      ["沈阳", 41.8057, 123.4315],
+      ["哈尔滨", 45.8038, 126.534],
+      ["福州", 26.0745, 119.2965]
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let recipes = [];
+    let current = null;
+    let spinning = false;
+    let todayKey = "";
+    let activeCity = "";
+
+    function hashStr(text) {
+      let h = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        h ^= text.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function dateKey(date = new Date()) {
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${date.getFullYear()}-${m}-${d}`;
+    }
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function greet(hour) {
+      if (hour < 5) return "夜深了，如果饿了就吃点温和的";
+      if (hour < 10) return "早上好，午饭可以先悄悄想一想";
+      if (hour < 14) return "午饭时间到啦，该让肚子开心了";
+      if (hour < 17) return "下午如果还空着肚子，现在补上";
+      if (hour < 21) return "傍晚了，这一抽也可以当成晚饭";
+      return "夜晚轻轻的，吃点暖胃的就好";
+    }
+
+    function loadRecipes() {
+      const seen = new Set();
+      recipes = RAW.split("\n").map((line) => {
+        const [name, tag, emoji] = line.split("|");
+        return { name: (name || "").trim(), tag: (tag || "家常").trim(), emoji: (emoji || "🍱").trim() };
+      }).filter((item) => {
+        if (!item.name || seen.has(item.name)) return false;
+        seen.add(item.name);
+        return true;
+      });
+      $("jarCountTop").textContent = String(recipes.length);
+    }
+
+    function tipOf(recipe) {
+      const list = TAG_TIPS[recipe.tag] || TAG_TIPS.家常;
+      return list[hashStr(recipe.name) % list.length];
+    }
+
+    function renderDish(recipe, phase) {
+      $("plateEmoji").textContent = recipe ? recipe.emoji : "🍱";
+      $("dishName").textContent = recipe ? recipe.name : "午饭还在罐里睡觉";
+      $("dishTag").textContent = recipe ? recipe.tag : "待抽取";
+      $("dishTag").dataset.tag = recipe ? recipe.tag : "";
+      if (phase === "spin") {
+        $("dishTip").textContent = "菜谱页正在哗啦啦地翻…";
+      } else if (phase === "result" && recipe) {
+        $("dishTip").textContent = tipOf(recipe);
+      } else {
+        $("dishTip").textContent = "按一下粉色按钮，让今天的菜自己跳出来";
+      }
+      $("stamp").classList.toggle("show", phase === "result");
+    }
+
+    function renderFortune() {
+      const seed = hashStr(dateKey());
+      const fortune = FORTUNES[seed % FORTUNES.length];
+      const color = COLORS[(seed >>> 3) % COLORS.length];
+      const food = FOODS[(seed >>> 6) % FOODS.length];
+      const yi = YI[(seed >>> 9) % YI.length];
+      const ji = JI[(seed >>> 12) % JI.length];
+      const stars = "★★★★★☆☆☆☆☆".slice(5 - fortune.stars, 10 - fortune.stars);
+      $("level").textContent = fortune.level;
+      $("level").className = `level lv-${fortune.stars}`;
+      $("stars").textContent = stars;
+      $("fortuneTitle").textContent = fortune.title;
+      $("fortuneLine").textContent = fortune.line;
+      $("luckyColor").textContent = color[0];
+      $("luckyDot").style.background = color[1];
+      $("luckyNum").textContent = String((seed % 9) + 1);
+      $("luckyFood").textContent = food;
+      $("yiLine").textContent = `宜 ${yi} · 忌 ${ji}`;
+    }
+
+    function renderClock() {
+      const now = new Date();
+      const key = dateKey(now);
+      if (todayKey && key !== todayKey) {
+        todayKey = key;
+        current = null;
+        renderFortune();
+        renderDish(null, "idle");
+        $("times").textContent = "新的一天，重新抽一份午饭";
+        $("drawBtn").textContent = "抽取午饭";
+      }
+      todayKey = key;
+      $("clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      $("dateText").textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+      $("weekText").textContent = `星期${"日一二三四五六"[now.getDay()]}`;
+      $("greet").textContent = greet(now.getHours());
+    }
+
+    function weatherOf(code) {
+      const table = {
+        0: ["晴朗", "☀️", "阳光软软的，适合吃点亮晶晶的菜"],
+        1: ["大致晴朗", "🌤️", "云很少，胃口会很好"],
+        2: ["多云", "⛅", "云像棉花糖，午饭也可以甜一点"],
+        3: ["阴天", "☁️", "光线柔柔的，来一碗热乎的吧"],
+        45: ["有雾", "🌫️", "雾蒙蒙的，喝口热汤醒醒神"],
+        48: ["雾凇", "🌫️", "空气凉凉的，吃点暖的"],
+        51: ["毛毛雨", "🌦️", "细雨天，汤面刚刚好"],
+        53: ["小雨", "🌦️", "窗外在下雨，碗里要有热气"],
+        55: ["浓毛毛雨", "🌧️", "雨有点密，适合炖菜"],
+        61: ["小雨", "🌧️", "雨丝凉凉的，午饭要暖和"],
+        63: ["中雨", "🌧️", "下雨啦，红烧或汤面都很加分"],
+        65: ["大雨", "🌧️", "雨很大，躲进热饭里吧"],
+        71: ["小雪", "🌨️", "雪天就要热乎乎的炖菜"],
+        73: ["中雪", "❄️", "雪花在飘，多吃一口热的"],
+        75: ["大雪", "❄️", "天寒，火锅和炖菜都想你"],
+        80: ["阵雨", "🌦️", "雨来得急，饭要趁热"],
+        81: ["强阵雨", "🌧️", "一阵雨一阵晴，菜也来点惊喜"],
+        82: ["暴阵雨", "⛈️", "雨势不小，室内热饭最安心"],
+        95: ["雷雨", "⛈️", "打雷的日子，吃顿踏实的"],
+        96: ["雷雨夹冰雹", "⛈️", "天气闹脾气，你安心吃饭"],
+        99: ["强雷雨", "⛈️", "外面热闹，碗里也热闹一点"]
+      };
+      if (table[code]) return table[code];
+      if (code >= 51 && code <= 67) return ["下雨", "🌧️", "雨天适合热食"];
+      if (code >= 71 && code <= 77) return ["下雪", "❄️", "冷冷的，吃点暖的"];
+      if (code >= 80 && code <= 82) return ["阵雨", "🌧️", "雨一阵一阵，饭要趁热"];
+      if (code >= 95) return ["雷暴", "⛈️", "打雷啦，好好吃饭"];
+      return ["天气轻轻的", "🌈", "不管怎样，午饭都值得被期待"];
+    }
+
+    function whisper(code, temp, feel) {
+      const hot = Math.max(temp, feel);
+      if (hot >= 30) return "气温有点高，凉菜、清淡和汤都会很舒服";
+      if (Math.min(temp, feel) <= 8) return "外面凉凉的，热菜、面和炖汤会更幸福";
+      return weatherOf(code)[2];
+    }
+
+    function renderCities(active) {
+      activeCity = active;
+      const row = $("cityRow");
+      row.innerHTML = "";
+      CITIES.forEach(([name, lat, lon]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = name;
+        button.className = name === active ? "active" : "";
+        button.addEventListener("click", () => chooseCity(name, lat, lon));
+        row.appendChild(button);
+        if (name === active) {
+          requestAnimationFrame(() => button.scrollIntoView({ inline: "center", block: "nearest" }));
+        }
+      });
+    }
+
+    async function loadWeather(name, lat, lon) {
+      $("wDesc").textContent = "正在看云";
+      $("wMeta").textContent = name;
+      const cacheKey = `jintian-weather-${name}`;
+      try {
+        const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
+        if (cached && Date.now() - cached.at < 20 * 60 * 1000) {
+          paintWeather(cached);
+          return;
+        }
+      } catch (error) { /* 缓存坏了就重新请求 */ }
+
+      const url = new URL("https://api.open-meteo.com/v1/forecast");
+      url.searchParams.set("latitude", String(lat));
+      url.searchParams.set("longitude", String(lon));
+      url.searchParams.set("current", "temperature_2m,apparent_temperature,weather_code");
+      url.searchParams.set("timezone", "auto");
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error("weather");
+      const data = await response.json();
+      const currentWeather = data.current || {};
+      const payload = {
+        at: Date.now(),
+        name,
+        temp: Math.round(currentWeather.temperature_2m),
+        feel: Math.round(currentWeather.apparent_temperature),
+        code: currentWeather.weather_code
+      };
+      sessionStorage.setItem(cacheKey, JSON.stringify(payload));
+      paintWeather(payload);
+    }
+
+    function paintWeather(payload) {
+      const info = weatherOf(payload.code);
+      $("wEmoji").textContent = info[0] && info[1];
+      $("temp").textContent = `${payload.temp}°`;
+      $("wDesc").textContent = info[0];
+      $("wMeta").textContent = `${payload.name} · 体感 ${payload.feel}°`;
+      $("wWhisper").textContent = whisper(payload.code, payload.temp, payload.feel);
+      const matched = CITIES.find((city) => String(payload.name).includes(city[0]));
+      renderCities(matched ? matched[0] : activeCity);
+    }
+
+    async function chooseCity(name, lat, lon) {
+      localStorage.setItem("jintian-chisha-city", name);
+      renderCities(name);
+      try {
+        await loadWeather(name, lat, lon);
+      } catch (error) {
+        showWeatherError();
+      }
+    }
+
+    function showWeatherError() {
+      $("wEmoji").textContent = "🌈";
+      $("temp").textContent = "--°";
+      $("wDesc").textContent = "天气害羞地躲起来了";
+      $("wMeta").textContent = "先在下面点一个城市，午饭照样可以抽";
+      $("wWhisper").textContent = location.protocol === "file:" ? "直接打开文件时，天气有时会加载失败。可以改用旁边的启动文件。" : "网络慢一点也没关系。";
+    }
+
+    async function bootWeather() {
+      renderCities("");
+      const saved = localStorage.getItem("jintian-chisha-city");
+      const savedCity = CITIES.find((city) => city[0] === saved);
+      if (savedCity) {
+        try {
+          await loadWeather(savedCity[0], savedCity[1], savedCity[2]);
+          return;
+        } catch (error) { /* 继续尝试自动定位 */ }
+      }
+      try {
+        const response = await fetch("https://get.geojs.io/v1/ip/geo.json", { signal: AbortSignal.timeout(8000) });
+        const geo = await response.json();
+        const lat = Number(geo.latitude);
+        const lon = Number(geo.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error("geo");
+        let name = geo.city || "附近";
+        try {
+          const rev = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=zh`, { signal: AbortSignal.timeout(8000) });
+          const place = await rev.json();
+          name = place.city || place.locality || place.principalSubdivision || name;
+        } catch (error) { /* 用英文城市名也行 */ }
+        await loadWeather(name, lat, lon);
+      } catch (error) {
+        showWeatherError();
+      }
+    }
+
+    function resultKey() { return `jintian-chisha-result-${dateKey()}`; }
+
+    function saveResult(recipe) {
+      let times = 1;
+      try {
+        const old = JSON.parse(localStorage.getItem(resultKey()) || "null");
+        if (old && old.times) times = old.times + 1;
+      } catch (error) { /* 旧记录读不出就从 1 开始 */ }
+      localStorage.setItem(resultKey(), JSON.stringify({ name: recipe.name, tag: recipe.tag, emoji: recipe.emoji, times }));
+      return times;
+    }
+
+    function restoreResult() {
+      try {
+        const old = JSON.parse(localStorage.getItem(resultKey()) || "null");
+        if (!old || !old.name) return;
+        const found = recipes.find((item) => item.name === old.name) || old;
+        current = found;
+        renderDish(found, "result");
+        $("times").textContent = `今天第 ${old.times || 1} 次抽签，还热乎着`;
+        $("drawBtn").textContent = "再抽一次";
+      } catch (error) { /* 没有历史就保持待抽取 */ }
+    }
+
+    function pick(exclude) {
+      const pool = recipes.filter((item) => item.name !== exclude);
+      const source = pool.length ? pool : recipes;
+      return source[Math.floor(Math.random() * source.length)];
+    }
+
+    function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+
+    function burst() {
+      if (reduceMotion) return;
+      const bits = ["✿", "♡", "★", "✨", "🍓", "🎀", "🍑", "💫"];
+      for (let i = 0; i < 18; i += 1) {
+        const piece = document.createElement("i");
+        piece.textContent = bits[i % bits.length];
+        piece.style.position = "fixed";
+        piece.style.left = `${8 + Math.random() * 84}%`;
+        piece.style.top = "42%";
+        piece.style.zIndex = "5";
+        piece.style.fontStyle = "normal";
+        piece.style.pointerEvents = "none";
+        piece.style.fontSize = `${16 + Math.random() * 16}px`;
+        piece.animate(
+          [
+            { transform: "translateY(0) scale(1)", opacity: 1 },
+            { transform: `translateY(${-120 - Math.random() * 160}px) scale(1.2)`, opacity: 0 }
+          ],
+          { duration: 900 + Math.random() * 500, easing: "ease-out" }
+        );
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1500);
+      }
+    }
+
+    async function draw() {
+      if (spinning || !recipes.length) return;
+      spinning = true;
+      const button = $("drawBtn");
+      button.disabled = true;
+      button.textContent = "翻呀翻…";
+      $("machine").classList.add("spin");
+      const winner = pick(current && current.name);
+      const steps = reduceMotion ? 1 : 26;
+      for (let i = 0; i < steps; i += 1) {
+        const last = i === steps - 1;
+        const shown = last ? winner : recipes[Math.floor(Math.random() * recipes.length)];
+        renderDish(shown, last ? "result" : "spin");
+        const progress = i / steps;
+        await sleep(40 + progress * progress * 280);
+      }
+      $("machine").classList.remove("spin");
+      current = winner;
+      const times = saveResult(winner);
+      $("times").textContent = `今天第 ${times} 次抽签`;
+      $("resultBox").classList.remove("pop");
+      void $("resultBox").offsetWidth;
+      $("resultBox").classList.add("pop");
+      $("live").textContent = `抽到了${winner.name}`;
+      burst();
+      button.disabled = false;
+      button.textContent = "再抽一次";
+      spinning = false;
+    }
+
+    function renderJar(keyword) {
+      const query = (keyword || "").trim();
+      const list = recipes.filter((item) => !query || item.name.includes(query) || item.tag.includes(query));
+      const box = $("jarList");
+      box.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      list.forEach((item) => {
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.className = "pill";
+        pill.textContent = `${item.emoji} ${item.name}`;
+        pill.title = item.tag;
+        pill.addEventListener("click", () => {
+          if (spinning) return;
+          current = item;
+          renderDish(item, "result");
+          const times = saveResult(item);
+          $("times").textContent = `今天第 ${times} 次抽签，自己点的也算数`;
+          $("drawBtn").textContent = "再抽一次";
+          $("live").textContent = `选定了${item.name}`;
+          document.querySelector(".bento").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+        });
+        fragment.appendChild(pill);
+      });
+      box.appendChild(fragment);
+      $("jarShown").textContent = query ? `找到 ${list.length} 道` : `一共 ${recipes.length} 道`;
+    }
+
+    function init() {
+      loadRecipes();
+      renderFortune();
+      renderClock();
+      setInterval(renderClock, 1000);
+      restoreResult();
+      renderJar("");
+      $("drawBtn").addEventListener("click", draw);
+      $("jarSearch").addEventListener("input", (event) => renderJar(event.target.value));
+      bootWeather();
+    }
+
+    init();
+  </script>
+</body>
+</html>
