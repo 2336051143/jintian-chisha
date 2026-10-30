@@ -591,6 +591,144 @@
       clip: rect(0 0 0 0);
     }
 
+    .meteors, .balloons, .pop-fx {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .meteors { z-index: 3; }
+    .balloons { z-index: 4; }
+    .pop-fx { z-index: 6; }
+
+    .meteor {
+      position: absolute;
+      width: var(--len, 150px);
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255, 246, 251, 0.2) 35%, #fff 100%);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
+      animation: shoot var(--time, 2.1s) linear forwards;
+    }
+
+    .meteor::after {
+      content: "";
+      position: absolute;
+      right: -2px;
+      top: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 12px 4px rgba(255, 236, 246, 0.95);
+    }
+
+    @keyframes shoot {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--angle, 28deg)); }
+      14% { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(-72vw, 58vh, 0) rotate(var(--angle, 28deg)); }
+    }
+
+    .balloon {
+      position: fixed;
+      left: var(--x);
+      top: 0;
+      width: var(--size, 64px);
+      height: calc(var(--size, 64px) * 1.45);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      pointer-events: auto;
+      cursor: pointer;
+      animation: rise var(--dur, 28s) linear forwards;
+      animation-delay: var(--delay, 0s);
+      filter: drop-shadow(0 12px 14px rgba(255, 170, 196, 0.28));
+    }
+
+    .balloon-body {
+      display: block;
+      width: 100%;
+      height: 72%;
+      border-radius: 50% 50% 46% 46%;
+      background:
+        radial-gradient(circle at 32% 26%, rgba(255,255,255,.95), transparent 26%),
+        linear-gradient(180deg, var(--c1), var(--c2));
+      animation: sway 4.2s ease-in-out infinite;
+    }
+
+    .balloon-knot {
+      display: block;
+      width: 10px;
+      height: 8px;
+      margin: -2px auto 0;
+      background: var(--c2);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+    }
+
+    .balloon-string {
+      display: block;
+      width: 1px;
+      height: 22%;
+      margin: 0 auto;
+      background: linear-gradient(rgba(196, 150, 170, 0.15), rgba(196, 150, 170, 0.55));
+    }
+
+    @keyframes rise {
+      from { transform: translate3d(0, 108vh, 0); }
+      to { transform: translate3d(var(--drift, 16px), -28vh, 0); }
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(4deg); }
+    }
+
+    .balloon-ghost, .pop-ring, .shard {
+      position: fixed;
+      pointer-events: none;
+    }
+
+    .balloon-ghost {
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 26%, rgba(255,255,255,.95), transparent 26%),
+        linear-gradient(180deg, var(--c1), var(--c2));
+      animation: ghostPop 0.32s ease-out forwards;
+    }
+
+    .pop-ring {
+      width: 18px;
+      height: 18px;
+      margin: -9px 0 0 -9px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 4px rgba(255, 196, 220, 0.35);
+      animation: ringOut 0.5s ease-out forwards;
+    }
+
+    .shard {
+      width: 9px;
+      height: 12px;
+      margin: -6px 0 0 -4px;
+      border-radius: 40% 60% 55% 45%;
+      animation: shardFly 0.62s ease-out forwards;
+    }
+
+    @keyframes ghostPop {
+      0% { transform: scale(1); opacity: 0.95; }
+      45% { transform: scale(1.28); opacity: 0.7; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    @keyframes ringOut {
+      to { transform: scale(4.2); opacity: 0; }
+    }
+
+    @keyframes shardFly {
+      to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.25); opacity: 0; }
+    }
+
     @media (max-width: 860px) {
       .info, .draw-layout { grid-template-columns: 1fr; }
       .result { padding-right: 8px; }
@@ -607,6 +745,9 @@
   </style>
 </head>
 <body>
+  <div class="meteors" id="meteors" aria-hidden="true"></div>
+  <div class="balloons" id="balloons"></div>
+  <div class="pop-fx" id="popFx" aria-hidden="true"></div>
   <div class="floats" aria-hidden="true">
     <span style="--x:6%;--y:10%;--d:0s;--s:28px">🍓</span>
     <span style="--x:90%;--y:14%;--d:1s;--s:24px">🎀</span>
@@ -1104,6 +1245,7 @@
       ["南京", 32.0603, 118.7969],
       ["重庆", 29.563, 106.5516],
       ["长沙", 28.2282, 112.9388],
+      ["益阳", 28.5539, 112.3552],
       ["苏州", 31.2989, 120.5853],
       ["天津", 39.3434, 117.3616],
       ["郑州", 34.7466, 113.6254],
@@ -1480,6 +1622,114 @@
       $("jarShown").textContent = query ? `找到 ${list.length} 道` : `一共 ${recipes.length} 道`;
     }
 
+    const BALLOON_COLORS = [
+      ["#fff7fb", "#ffd4e8"],
+      ["#fffaf2", "#ffe4bc"],
+      ["#f5fbff", "#d4eeff"],
+      ["#f4fff8", "#d5f6e6"],
+      ["#f8f5ff", "#e4d8ff"],
+      ["#fff7f3", "#ffddd0"]
+    ];
+
+    /* 浅色气球从底部缓缓浮出，点一下就破碎 */
+    function spawnBalloon(progress) {
+      const layer = $("balloons");
+      if (!layer || layer.children.length >= 6) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "balloon";
+      button.setAttribute("aria-label", "点破气球");
+      const colors = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+      const dur = 26 + Math.random() * 14;
+      button.style.setProperty("--c1", colors[0]);
+      button.style.setProperty("--c2", colors[1]);
+      button.style.setProperty("--x", `${4 + Math.random() * 88}%`);
+      button.style.setProperty("--dur", `${dur}s`);
+      button.style.setProperty("--delay", `${progress ? -progress * dur : 0}s`);
+      button.style.setProperty("--drift", `${-46 + Math.random() * 92}px`);
+      button.style.setProperty("--size", `${54 + Math.random() * 26}px`);
+      button.dataset.color = colors[1];
+      button.dataset.light = colors[0];
+      button.innerHTML = '<span class="balloon-body"></span><span class="balloon-knot"></span><span class="balloon-string"></span>';
+      button.addEventListener("click", popBalloon);
+      button.addEventListener("animationend", (event) => {
+        if (event.animationName !== "rise" || button.dataset.done) return;
+        button.dataset.done = "1";
+        button.remove();
+        spawnBalloon(0);
+      });
+      layer.appendChild(button);
+    }
+
+    function popBalloon(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const balloon = event.currentTarget;
+      if (balloon.dataset.done) return;
+      balloon.dataset.done = "1";
+      const rect = balloon.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height * 0.34;
+      const fx = $("popFx");
+      const ghost = document.createElement("i");
+      ghost.className = "balloon-ghost";
+      ghost.style.left = `${rect.left}px`;
+      ghost.style.top = `${rect.top}px`;
+      ghost.style.width = `${rect.width}px`;
+      ghost.style.height = `${rect.width}px`;
+      ghost.style.setProperty("--c1", balloon.dataset.light);
+      ghost.style.setProperty("--c2", balloon.dataset.color);
+      fx.appendChild(ghost);
+      const ring = document.createElement("i");
+      ring.className = "pop-ring";
+      ring.style.left = `${cx}px`;
+      ring.style.top = `${cy}px`;
+      fx.appendChild(ring);
+      const bits = [ghost, ring];
+      for (let i = 0; i < 12; i += 1) {
+        const shard = document.createElement("i");
+        const angle = (Math.PI * 2 * i) / 12 + Math.random() * 0.35;
+        const dist = 34 + Math.random() * 52;
+        shard.className = "shard";
+        shard.style.left = `${cx}px`;
+        shard.style.top = `${cy}px`;
+        shard.style.background = i % 3 === 0 ? "#fff" : balloon.dataset.color;
+        shard.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        shard.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+        shard.style.setProperty("--rot", `${Math.random() * 220 - 110}deg`);
+        fx.appendChild(shard);
+        bits.push(shard);
+      }
+      balloon.remove();
+      setTimeout(() => bits.forEach((piece) => piece.remove()), 700);
+      spawnBalloon(0);
+    }
+
+    /* 流星从画面斜向滑过 */
+    function spawnMeteor() {
+      const layer = $("meteors");
+      if (!layer || layer.children.length >= 4) return;
+      const star = document.createElement("i");
+      star.className = "meteor";
+      star.style.left = `${18 + Math.random() * 95}%`;
+      star.style.top = `${Math.random() * 46}%`;
+      star.style.setProperty("--len", `${110 + Math.random() * 90}px`);
+      star.style.setProperty("--angle", `${18 + Math.random() * 22}deg`);
+      star.style.setProperty("--time", `${1.5 + Math.random() * 1.3}s`);
+      star.addEventListener("animationend", () => star.remove());
+      layer.appendChild(star);
+    }
+
+    function initSky() {
+      if (reduceMotion) return;
+      for (let i = 0; i < 5; i += 1) spawnBalloon(0.15 + Math.random() * 0.7);
+      spawnMeteor();
+      setInterval(() => {
+        if (document.hidden) return;
+        spawnMeteor();
+      }, 1600);
+    }
+
     function init() {
       loadRecipes();
       renderFortune();
@@ -1490,6 +1740,7 @@
       $("drawBtn").addEventListener("click", draw);
       $("jarSearch").addEventListener("input", (event) => renderJar(event.target.value));
       bootWeather();
+      initSky();
     }
 
     init();
